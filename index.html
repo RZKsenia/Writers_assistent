@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ассистент Писателя</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+      colors: {
+        parchment: { 50: '#fdf8f0', 100: '#f9f0e0', 200: '#f2e0c0', 300: '#e8cc9a', 400: '#d4a855', 500: '#c49540', 600: '#a87830', 700: '#8a6028', 800: '#6d4d22', 900: '#523a1a' },
+        ink: { 50: '#f5f3f0', 100: '#e8e4de', 200: '#d4cec4', 300: '#b8aea0', 400: '#968a7a', 500: '#7a6e60', 600: '#63574c', 700: '#4f453c', 800: '#3d3630', 900: '#2a2420', 950: '#1a1614' },
+        sage: { 50: '#f4f7f4', 100: '#e3ebe3', 200: '#c5d6c5', 300: '#9eb89e', 400: '#729672', 500: '#527a52', 600: '#3d603d', 700: '#334d33', 800: '#2b3e2b', 900: '#253425' },
+        burgundy: { 50: '#fdf2f2', 100: '#fce7e7', 200: '#f9d0d0', 300: '#f4a9a9', 400: '#ec7373', 500: '#df4b4b', 600: '#cc3333', 700: '#ab2525', 800: '#8d2222', 900: '#762121' }
+      }
+    }
+  }
+}
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Inter', sans-serif; }
+  .font-serif { font-family: 'Cormorant Garamond', serif; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #b8aea0; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #968a7a; }
+  .fade-in { animation: fadeIn 0.25s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .slide-in { animation: slideIn 0.3s ease-out; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+  .modal-overlay { background: rgba(26, 22, 20, 0.6); backdrop-filter: blur(4px); }
+  .card-hover { transition: all 0.2s ease; }
+  .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+  .tab-active { border-bottom: 2px solid #527a52; color: #334d33; }
+  .nav-active { background: rgba(82, 122, 82, 0.1); color: #3d603d; }
+  textarea, input, select { font-family: 'Inter', sans-serif; }
+  .char-card-gradient { background: linear-gradient(135deg, #f9f0e0 0%, #f2e0c0 100%); }
+  .loc-card-gradient { background: linear-gradient(135deg, #e3ebe3 0%, #c5d6c5 100%); }
+  .work-card-gradient { background: linear-gradient(135deg, #fce7e7 0%, #f9d0d0 100%); }
+  .graph-canvas { background: #faf8f5; border-radius: 12px; }
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; }
+  .stat-card { background: linear-gradient(135deg, #fdf8f0 0%, #f9f0e0 100%); border: 1px solid #e8e4de; }
+  .timeline-line { position: relative; }
+  .timeline-line::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 2px; background: #d4cec4; }
+  .empty-state { text-align: center; padding: 3rem 1rem; }
+  .empty-state svg { margin: 0 auto 1rem; opacity: 0.4; }
+  .btn-primary { background: linear-gradient(135deg, #527a52, #3d603d); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-primary:hover { background: linear-gradient(135deg, #3d603d, #334d33); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(61,96,61,0.3); }
+  .btn-secondary { background: #e8e4de; color: #4f453c; border: none; padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-secondary:hover { background: #d4cec4; }
+  .btn-danger { background: #df4b4b; color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-danger:hover { background: #cc3333; }
+  .btn-ghost { background: transparent; color: #63574c; border: 1px solid #d4cec4; padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-ghost:hover { background: #f5f3f0; border-color: #b8aea0; }
+  input[type="file"] { display: none; }
+  .image-upload-area { border: 2px dashed #d4cec4; border-radius: 12px; padding: 1.5rem; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .image-upload-area:hover { border-color: #527a52; background: #f4f7f4; }
+  .tooltip { position: relative; }
+  .tooltip::after { content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #3d3630; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .tooltip:hover::after { opacity: 1; }
+  @keyframes pulse-dot { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.5); } }
+  .pulse-dot { animation: pulse-dot 2s infinite; }
+  .writing-prompt { background: linear-gradient(135deg, #f4f7f4, #e3ebe3); border-left: 4px solid #527a52; }
+  .word-count-bar { height: 4px; background: #e8e4de; border-radius: 2px; overflow: hidden; }
+  .word-count-fill { height: 100%; background: linear-gradient(90deg, #527a52, #729672); border-radius: 2px; transition: width 0.3s; }
+  .search-highlight { background: #f9f0e0; border-radius: 2px; padding: 0 2px; }
+</style>
+</head>
+<body class="bg-ink-50 text-ink-800 min-h-screen">
+
+<div id="app" class="flex h-screen overflow-hidden">
+  <!-- Sidebar -->
+  <aside id="sidebar" class="w-64 bg-ink-900 text-ink-200 flex flex-col flex-shrink-0 transition-all duration-300">
+    <div class="p-5 border-b border-ink-700">
+      <h1 class="font-serif text-2xl text-parchment-200 font-bold tracking-wide">✦ Ассистент<br><span class="text-lg text-ink-400">Писателя</span></h1>
+    </div>
+    <nav class="flex-1 py-4 px-3 space-y-1">
+      <button onclick="showSection('dashboard')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-ink-800 transition-colors" data-section="dashboard">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg>
+        <span class="text-sm">Обзор</span>
+      </button>
+      <button onclick="showSection('works')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-ink-800 transition-colors" data-section="works">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        <span class="text-sm">Произведения</span>
+      </button>
+      <button onclick="showSection('characters')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-ink-800 transition-colors" data-section="characters">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        <span class="text-sm">Персонажи</span>
+      </button>
+      <button onclick="showSection('locations')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-ink-800 transition-colors" data-section="locations">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="text-sm">Места</span>
+      </button>
+      <button onclick="showSection('planner')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-ink-800 transition-colors" data-section="planner">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+        <span class="text-sm">Планировщик</span>
+      </button>
+      <button onclick="showSection('relationships')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-ink-800 transition-colors" data-section="relationships">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+        <span class="text-sm">Связи</span>
+      </button>
+      <div class="border-t border-ink-700 my-3"></div>
+      <button onclick="showSection('tools')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-ink-800 transition-colors" data-section="tools">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        <span class="text-sm">Инструменты</span>
+      </button>
+    </nav>
+    <div class="p-3 border-t border-ink-700 space-y-1">
+      <button onclick="saveProject()" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left hover:bg-ink-800 transition-colors text-sage-300">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+        <span class="text-sm">Сохранить</span>
+      </button>
+      <button onclick="loadProject()" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left hover:bg-ink-800 transition-colors text-parchment-400">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3"/></svg>
+        <span class="text-sm">Загрузить</span>
+      </button>
+      <button onclick="exportProject()" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left hover:bg-ink-800 transition-colors text-ink-400">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span class="text-sm">Экспорт JSON</span>
+      </button>
+      <label class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left hover:bg-ink-800 transition-colors text-ink-400 cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        <span class="text-sm">Импорт JSON</span>
+        <input type="file" accept=".json" onchange="importProject(event)">
+      </label>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+    <!-- Top Bar -->
+    <header class="bg-white border-b border-ink-200 px-6 py-3 flex items-center justify-between flex-shrink-0">
+      <div class="flex items-center gap-4">
+        <h2 id="sectionTitle" class="font-serif text-2xl text-ink-800 font-semibold">Обзор</h2>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input id="globalSearch" type="text" placeholder="Поиск..." oninput="handleGlobalSearch(this.value)" class="pl-10 pr-4 py-2 bg-ink-50 border border-ink-200 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-sage-400 focus:border-transparent">
+        </div>
+        <span id="lastSaved" class="text-xs text-ink-400"></span>
+      </div>
+    </header>
+
+    <!-- Content Area -->
+    <div id="contentArea" class="flex-1 overflow-y-auto p-6">
+      <!-- Sections will be rendered here -->
+    </div>
+  </main>
+</div>
+
+<!-- Modal -->
+<div id="modal" class="fixed inset-0 z-50 hidden">
+  <div class="modal-overlay absolute inset-0" onclick="closeModal()"></div>
+  <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+    <div id="modalContent" class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto fade-in">
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
+  <div class="bg-ink-800 text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 fade-in">
+    <svg class="w-5 h-5 text-sage-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    <span id="toastText" class="text-sm"></span>
+  </div>
+</div>
+
+<script>
+// ============ DATA ============
+let data = {
+  works: [],
+  characters: [],
+  locations: [],
+  relationships: [],
+  prompts: []
+};
+
+let currentSection = 'dashboard';
+let editingId = null;
+
+const RELATIONSHIP_TYPES = [
+  { id: 'friend', label: 'Друг', color: '#527a52', icon: '🤝' },
+  { id: 'enemy', label: 'Враг', color: '#ab2525', icon: '⚔️' },
+  { id: 'family', label: 'Семья', color: '#8a6028', icon: '👨‍👩‍👧' },
+  { id: 'love', label: 'Возлюбленные', color: '#df4b4b', icon: '❤️' },
+  { id: 'mentor', label: 'Наставник', color: '#63574c', icon: '🎓' },
+  { id: 'rival', label: 'Соперник', color: '#968a7a', icon: '🏆' },
+  { id: 'colleague', label: 'Коллега', color: '#5b7fa5', icon: '💼' },
+  { id: 'acquaintance', label: 'Знакомый', color: '#b8aea0', icon: '👋' },
+  { id: 'secret', label: 'Тайная связь', color: '#6b21a8', icon: '🤫' },
+  { id: 'custom', label: 'Другое', color: '#7a6e60', icon: '✏️' }
+];
+
+const GENRES = ['Фэнтези', 'Научная фантастика', 'Детектив', 'Роман', 'Триллер', 'Ужасы', 'Исторический', 'Приключения', 'Драма', 'Комедия', 'Поэзия', 'Другое'];
+
+const WRITING_PROMPTS = [
+  "Персонаж находит в старом пальто записку, написанную его почерком, но он её не писал...",
+  "Два незнакомца оказываются заперты в комнате. У каждого из них — половина одного и того же ключа.",
+  "Город просыпается и обнаруживает, что все зеркала показывают не отражение, а воспоминания.",
+  "Персонаж получает письмо от человека, который умер двадцать лет назад.",
+  "На рассвете все жители города одновременно слышат один и тот же звук.",
+  "Библиотекарь находит книгу, в которой описана его жизнь — включая события, которые ещё не произошли.",
+  "Персонаж понимает, что каждое его решение создаёт параллельную реальность, и кто-то пытается их объединить.",
+  "В ресторане официант приносит блюдо, которое персонаж ел только в детстве — и больше нигде.",
+  "Часы в городе начинают идти назад, и только один человек это замечает.",
+  "Персонаж встречает свою точную копию, но у неё другая судьба.",
+  "Старый мост в городе начинает шептать имена тех, кто по нему проходит.",
+  "Персонаж обнаруживает, что его сны — это чужие воспоминания."
+];
+
+// ============ NAVIGATION ============
+function showSection(section) {
+  currentSection = section;
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('nav-active', el.dataset.section === section);
+  });
+  const titles = {
+    dashboard: 'Обзор', works: 'Произведения', characters: 'Персонажи',
+    locations: 'Места действия', planner: 'Планировщик глав',
+    relationships: 'Граф связей', tools: 'Инструменты писателя'
+  };
+  document.getElementById('sectionTitle').textContent = titles[section] || '';
+  renderSection();
+}
+
+function renderSection() {
+  const area = document.getElementById('contentArea');
+  switch (currentSection) {
+    case 'dashboard': renderDashboard(area); break;
+    case 'works': renderWorks(area); break;
+    case 'characters': renderCharacters(area); break;
+    case 'locations': renderLocations(area); break;
+    case 'planner': renderPlanner(area); break;
+    case 'relationships': renderRelationships(area); break;
+    case 'tools': renderTools(area); break;
+  }
+}
+
+// ============ DASHBOARD ============
+function renderDashboard(area) {
+  const totalWords = countTotalWords();
+  const wordGoal = 50000;
+  const progress = Math.min((totalWords / wordGoal) * 100, 100);
+  const prompt = WRITING_PROMPTS[Math.floor(Math.random() * WRITING_PROMPTS.length)];
+
+  area.innerHTML = `
+    <div class="fade-in space-y-6 max-w-6xl mx-auto">
+      <!-- Stats -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="stat-card rounded-xl p-5 card-hover">
+          <div class="text-3xl font-bold text-ink-800">${data.works.length}</div>
+          <div class="text-sm text-ink-500 mt-1">Произведений</div>
+        </div>
+        <div class="stat-card rounded-xl p-5 card-hover">
+          <div class="text-3xl font-bold text-ink-800">${data.characters.length}</div>
+          <div class="text-sm text-ink-500 mt-1">Персонажей</div>
+        </div>
+        <div class="stat-card rounded-xl p-5 card-hover">
+          <div class="text-3xl font-bold text-ink-800">${data.locations.length}</div>
+          <div class="text-sm text-ink-500 mt-1">Мест действия</div>
+        </div>
+        <div class="stat-card rounded-xl p-5 card-hover">
+          <div class="text-3xl font-bold text-ink-800">${totalWords.toLocaleString()}</div>
+          <div class="text-sm text-ink-500 mt-1">Слов всего</div>
+        </div>
+      </div>
+
+      <!-- Word Count Goal -->
+      <div class="bg-white rounded-xl p-5 border border-ink-200">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-serif text-lg font-semibold">Прогресс к цели (${wordGoal.toLocaleString()} слов)</h3>
+          <span class="text-sm text-sage-600 font-medium">${progress.toFixed(1)}%</span>
+        </div>
+        <div class="word-count-bar">
+          <div class="word-count-fill" style="width: ${progress}%"></div>
+        </div>
+        <div class="flex justify-between mt-2 text-xs text-ink-400">
+          <span>0</span>
+          <span>${(wordGoal/2).toLocaleString()}</span>
+          <span>${wordGoal.toLocaleString()}</span>
+        </div>
+      </div>
+
+      <!-- Writing Prompt -->
+      <div class="writing-prompt rounded-xl p-6">
+        <div class="flex items-start gap-3">
+          <span class="text-2xl">💡</span>
+          <div>
+            <h3 class="font-serif text-lg font-semibold text-sage-700 mb-2">Подсказка для вдохновения</h3>
+            <p class="text-ink-700 italic">${prompt}</p>
+            <button onclick="refreshPrompt()" class="mt-3 text-sm text-sage-600 hover:text-sage-800 font-medium transition-colors">
+              ↻ Другая подсказка
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Access -->
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl border border-ink-200 p-5">
+          <h3 class="font-serif text-lg font-semibold mb-4">Последние произведения</h3>
+          ${data.works.length === 0 ? '<p class="text-ink-400 text-sm">Пока нет произведений</p>' :
+            data.works.slice(-3).reverse().map(w => `
+              <div class="flex items-center justify-between py-2 border-b border-ink-100 last:border-0">
+                <div>
+                  <span class="font-medium text-ink-800">${escHtml(w.title)}</span>
+                  <span class="text-xs text-ink-400 ml-2">${w.genre || ''}</span>
+                </div>
+                <span class="badge ${getStatusBadge(w.status)}">${getStatusText(w.status)}</span>
+              </div>
+            `).join('')}
+        </div>
+        <div class="bg-white rounded-xl border border-ink-200 p-5">
+          <h3 class="font-serif text-lg font-semibold mb-4">Последние персонажи</h3>
+          ${data.characters.length === 0 ? '<p class="text-ink-400 text-sm">Пока нет персонажей</p>' :
+            data.characters.slice(-3).reverse().map(c => `
+              <div class="flex items-center gap-3 py-2 border-b border-ink-100 last:border-0">
+                <div class="w-8 h-8 rounded-full bg-sage-100 flex items-center justify-center text-sage-700 font-serif font-bold text-sm overflow-hidden flex-shrink-0">
+                  ${c.image ? `<img src="${c.image}" class="w-full h-full object-cover">` : c.name.charAt(0).toUpperCase()}
+                </div>
+                <span class="font-medium text-ink-800">${escHtml(c.name)}</span>
+              </div>
+            `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function refreshPrompt() {
+  renderDashboard(document.getElementById('contentArea'));
+}
+
+function countTotalWords() {
+  let count = 0;
+  data.characters.forEach(c => { count += countWords(c.description || ''); count += countWords(c.appearance || ''); });
+  data.locations.forEach(l => { count += countWords(l.description || ''); });
+  data.works.forEach(w => {
+    count += countWords(w.description || '');
+    (w.chapters || []).forEach(ch => { count += countWords(ch.description || ''); count += countWords(ch.notes || ''); });
+  });
+  data.relationships.forEach(r => { count += countWords(r.description || ''); });
+  return count;
+}
+
+function countWords(text) {
+  return text.trim() ? text.trim().split(/\s+/).length : 0;
+}
+
+function getStatusBadge(status) {
+  const map = { draft: 'bg-ink-100 text-ink-600', writing: 'bg-sage-100 text-sage-700', editing: 'bg-parchment-100 text-parchment-700', done: 'bg-blue-100 text-blue-700' };
+  return map[status] || 'bg-ink-100 text-ink-600';
+}
+
+function getStatusText(status) {
+  const map = { draft: 'Черновик', writing: 'В процессе', editing: 'Редактирование', done: 'Завершено' };
+  return map[status] || 'Черновик';
+}
+
+// ============ WORKS ============
+function renderWorks(area) {
+  area.innerHTML = `
+    <div class="fade-in">
+      <div class="flex justify-between items-center mb-6">
+        <p class="text-ink-500 text-sm">${data.works.length} произведений</p>
+        <button onclick="openWorkModal()" class="btn-primary flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Новое произведение
+        </button>
+      </div>
+      ${data.works.length === 0 ? `
+        <div class="empty-state">
+          <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          <p class="text-ink-400 text-lg">Пока нет произведений</p>
+          <p class="text-ink-400 text-sm mt-1">Создайте первое произведение, чтобы начать</p>
+        </div>
+      ` : `
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          ${data.works.map(w => {
+            const chCount = (w.chapters || []).length;
+            const charIds = new Set();
+            (w.chapters || []).forEach(ch => (ch.characterIds || []).forEach(id => charIds.add(id)));
+            return `
+              <div class="bg-white rounded-xl border border-ink-200 p-5 card-hover cursor-pointer" onclick="openWorkModal('${w.id}')">
+                <div class="flex items-start justify-between mb-3">
+                  <h3 class="font-serif text-xl font-semibold text-ink-800 line-clamp-1">${escHtml(w.title)}</h3>
+                  <span class="badge ${getStatusBadge(w.status)} flex-shrink-0 ml-2">${getStatusText(w.status)}</span>
+                </div>
+                ${w.genre ? `<span class="text-xs text-ink-400 bg-ink-50 px-2 py-1 rounded">${w.genre}</span>` : ''}
+                <p class="text-sm text-ink-500 mt-3 line-clamp-2">${escHtml(w.description || 'Без описания')}</p>
+                <div class="flex items-center gap-4 mt-4 pt-4 border-t border-ink-100 text-xs text-ink-400">
+                  <span>📑 ${chCount} глав</span>
+                  <span>👥 ${charIds.size} персонажей</span>
+                  <span>📝 ${countWords(w.description || '').toLocaleString()} слов</span>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `}
+    </div>
+  `;
+}
+
+function openWorkModal(id) {
+  const work = id ? data.works.find(w => w.id === id) : null;
+  editingId = id;
+  const chCount = work ? (work.chapters || []).length : 0;
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="font-serif text-2xl font-bold">${work ? 'Редактировать' : 'Новое произведение'}</h3>
+        ${work ? `<button onclick="deleteWork('${work.id}')" class="text-burgundy-500 hover:text-burgundy-700 text-sm">Удалить</button>` : ''}
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-ink-600 mb-1">Название *</label>
+          <input id="workTitle" type="text" value="${work ? escAttr(work.title) : ''}" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400" placeholder="Название произведения">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-ink-600 mb-1">Жанр</label>
+            <select id="workGenre" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400">
+              <option value="">Выберите жанр</option>
+              ${GENRES.map(g => `<option value="${g}" ${work && work.genre === g ? 'selected' : ''}>${g}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ink-600 mb-1">Статус</label>
+            <select id="workStatus" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400">
+              <option value="draft" ${work && work.status === 'draft' ? 'selected' : ''}>Черновик</option>
+              <option value="writing" ${work && work.status === 'writing' ? 'selected' : ''}>В процессе</option>
+              <option value="editing" ${work && work.status === 'editing' ? 'selected' : ''}>Редактирование</option>
+              <option value="done" ${work && work.status === 'done' ? 'selected' : ''}>Завершено</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-ink-600 mb-1">Описание</label>
+          <textarea id="workDesc" rows="4" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 resize-none" placeholder="Краткое описание произведения...">${work ? escHtml(work.description || '') : ''}</textarea>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-ink-100">
+        <button onclick="closeModal()" class="btn-ghost">Отмена</button>
+        <button onclick="saveWork()" class="btn-primary">Сохранить</button>
+      </div>
+    </div>
+  `;
+  openModal();
+}
+
+function saveWork() {
+  const title = document.getElementById('workTitle').value.trim();
+  if (!title) { showToast('Введите название'); return; }
+
+  const workData = {
+    title,
+    genre: document.getElementById('workGenre').value,
+    status: document.getElementById('workStatus').value,
+    description: document.getElementById('workDesc').value.trim()
+  };
+
+  if (editingId) {
+    const work = data.works.find(w => w.id === editingId);
+    Object.assign(work, workData);
+  } else {
+    data.works.push({ id: genId(), ...workData, chapters: [], createdAt: new Date().toISOString() });
+  }
+
+  closeModal();
+  renderSection();
+  showToast(editingId ? 'Произведение обновлено' : 'Произведение создано');
+}
+
+function deleteWork(id) {
+  if (!confirm('Удалить произведение и все его главы?')) return;
+  data.works = data.works.filter(w => w.id !== id);
+  closeModal();
+  renderSection();
+  showToast('Произведение удалено');
+}
+
+// ============ CHARACTERS ============
+function renderCharacters(area) {
+  area.innerHTML = `
+    <div class="fade-in">
+      <div class="flex justify-between items-center mb-6">
+        <p class="text-ink-500 text-sm">${data.characters.length} персонажей</p>
+        <button onclick="openCharModal()" class="btn-primary flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Новый персонаж
+        </button>
+      </div>
+      ${data.characters.length === 0 ? `
+        <div class="empty-state">
+          <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          <p class="text-ink-400 text-lg">Пока нет персонажей</p>
+        </div>
+      ` : `
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          ${data.characters.map(c => `
+            <div class="bg-white rounded-xl border border-ink-200 overflow-hidden card-hover cursor-pointer" onclick="openCharModal('${c.id}')">
+              <div class="h-40 bg-gradient-to-br from-parchment-100 to-parchment-200 flex items-center justify-center overflow-hidden relative">
+                ${c.image ? `<img src="${c.image}" class="w-full h-full object-cover">` : `
+                  <div class="text-center">
+                    <div class="w-20 h-20 rounded-full bg-white shadow-md flex items-center justify-center text-3xl font-serif font-bold text-sage-600 mx-auto">${c.name.charAt(0).toUpperCase()}</div>
+                  </div>
+                `}
+              </div>
+              <div class="p-4">
+                <h3 class="font-serif text-xl font-semibold text-ink-800">${escHtml(c.name)}</h3>
+                ${c.role ? `<span class="text-xs text-sage-600 bg-sage-50 px-2 py-0.5 rounded mt-1 inline-block">${escHtml(c.role)}</span>` : ''}
+                <p class="text-sm text-ink-500 mt-2 line-clamp-2">${escHtml(c.description || 'Без описания')}</p>
+                <div class="flex items-center gap-3 mt-3 text-xs text-ink-400">
+                  <span>📝 ${countWords(c.description || '').toLocaleString()} слов</span>
+                  ${c.appearance ? '<span>👁 Есть описание внешности</span>' : ''}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `}
+    </div>
+  `;
+}
+
+function openCharModal(id) {
+  const ch = id ? data.characters.find(c => c.id === id) : null;
+  editingId = id;
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="font-serif text-2xl font-bold">${ch ? 'Карточка персонажа' : 'Новый персонаж'}</h3>
+        ${ch ? `<button onclick="deleteChar('${ch.id}')" class="text-burgundy-500 hover:text-burgundy-700 text-sm">Удалить</button>` : ''}
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="md:col-span-1">
+          <div id="charImageArea" class="image-upload-area mb-4" onclick="document.getElementById('charImageInput').click()">
+            ${ch && ch.image ? `<img src="${ch.image}" class="w-full h-48 object-cover rounded-lg">` : `
+              <div class="py-6">
+                <svg class="w-10 h-10 mx-auto text-ink-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <p class="text-sm text-ink-400">Загрузить фото</p>
+              </div>
+            `}
+            <input type="file" id="charImageInput" accept="image/*" onchange="handleImageUpload(this, 'charImageArea')">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ink-600 mb-1">Роль</label>
+            <input id="charRole" type="text" value="${ch ? escAttr(ch.role || '') : ''}" class="w-full px-3 py-2 border border-ink-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sage-400" placeholder="Главный герой, антагонист...">
+          </div>
+        </div>
+        <div class="md:col-span-2 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-ink-600 mb-1">Имя *</label>
+            <input id="charName" type="text" value="${ch ? escAttr(ch.name) : ''}" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400" placeholder="Имя персонажа">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ink-600 mb-1">Описание</label>
+            <textarea id="charDesc" rows="4" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 resize-none" placeholder="Характер, биография, мотивация...">${ch ? escHtml(ch.description || '') : ''}</textarea>
+            <div class="text-xs text-ink-400 mt-1 text-right"><span id="charWordCount">${ch ? countWords(ch.description || '') : 0}</span> слов</div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ink-600 mb-1">Внешность</label>
+            <textarea id="charAppearance" rows="3" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 resize-none" placeholder="Описание внешности...">${ch ? escHtml(ch.appearance || '') : ''}</textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ink-600 mb-1">Характерные черты</label>
+            <input id="charTraits" type="text" value="${ch ? escAttr(ch.traits || '') : ''}" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400" placeholder="Умный, хитрый, добрый... (через запятую)">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ink-600 mb-1">Заметки</label>
+            <textarea id="charNotes" rows="2" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 resize-none" placeholder="Любые заметки о персонаже...">${ch ? escHtml(ch.notes || '') : ''}</textarea>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-ink-100">
+        <button onclick="closeModal()" class="btn-ghost">Отмена</button>
+        <button onclick="saveChar()" class="btn-primary">Сохранить</button>
+      </div>
+    </div>
+  `;
+  openModal();
+
+  // Word count update
+  const descTextarea = document.getElementById('charDesc');
+  if (descTextarea) {
+    descTextarea.addEventListener('input', function() {
+      document.getElementById('charWordCount').textContent = countWords(this.value);
+    });
+  }
+}
+
+function saveChar() {
+  const name = document.getElementById('charName').value.trim();
+  if (!name) { showToast('Введите имя'); return; }
+
+  const imgEl = document.querySelector('#charImageArea img');
+  const chData = {
+    name,
+    role: document.getElementById('charRole').value.trim(),
+    description: document.getElementById('charDesc').value.trim(),
+    appearance: document.getElementById('charAppearance').value.trim(),
+    traits: document.getElementById('charTraits').value.trim(),
+    notes: document.getElementById('charNotes').value.trim(),
+    image: imgEl ? imgEl.src : ''
+  };
+
+  if (editingId) {
+    const ch = data.characters.find(c => c.id === editingId);
+    Object.assign(ch, chData);
+  } else {
+    data.characters.push({ id: genId(), ...chData, createdAt: new Date().toISOString() });
+  }
+
+  closeModal();
+  renderSection();
+  showToast(editingId ? 'Персонаж обновлён' : 'Персонаж создан');
+}
+
+function deleteChar(id) {
+  if (!confirm('Удалить персонажа? Связи также будут удалены.')) return;
+  data.characters = data.characters.filter(c => c.id !== id);
+  data.relationships = data.relationships.filter(r => r.characterId1 !== id && r.characterId2 !== id);
+  // Remove from chapters
+  data.works.forEach(w => (w.chapters || []).forEach(ch => {
+    ch.characterIds = (ch.characterIds || []).filter(cid => cid !== id);
+  }));
+  closeModal();
+  renderSection();
+  showToast('Персонаж удалён');
+}
+
+// ============ LOCATIONS ============
+function renderLocations(area) {
+  area.innerHTML = `
+    <div class="fade-in">
+      <div class="flex justify-between items-center mb-6">
+        <p class="text-ink-500 text-sm">${data.locations.length} мест</p>
+        <button onclick="openLocModal()" class="btn-primary flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Новое место
+        </button>
+      </div>
+      ${data.locations.length === 0 ? `
+        <div class="empty-state">
+          <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <p class="text-ink-400 text-lg">Пока нет мест действия</p>
+        </div>
+      ` : `
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          ${data.locations.map(l => `
+            <div class="bg-white rounded-xl border border-ink-200 overflow-hidden card-hover cursor-pointer" onclick="openLocModal('${l.id}')">
+              <div class="h-40 bg-gradient-to-br from-sage-100 to-sage-200 flex items-center justify-center overflow-hidden relative">
+                ${l.image ? `<img src="${l.image}" class="w-full h-full object-cover">` : `
+                  <div class="text-4xl">🏰</div>
+                `}
+              </div>
+              <div class="p-4">
+                <h3 class="font-serif text-xl font-semibold text-ink-800">${escHtml(l.name)}</h3>
+                ${l.type ? `<span class="text-xs text-sage-600 bg-sage-50 px-2 py-0.5 rounded mt-1 inline-block">${escHtml(l.type)}</span>` : ''}
+                <p class="text-sm text-ink-500 mt-2 line-clamp-2">${escHtml(l.description || 'Без описания')}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `}
+    </div>
+  `;
+}
+
+function openLocModal(id) {
+  const loc = id ? data.locations.find(l => l.id === id) : null;
+  editingId = id;
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="font-serif text-2xl font-bold">${loc ? 'Карточка места' : 'Новое место'}</h3>
+        ${loc ? `<button onclick="deleteLoc('${loc.id}')" class="text-burgundy-500 hover:text-burgundy-700 text-sm">Удалить</button>` : ''}
+      </div>
+      <div class="space-y-4">
+        <div class="grid md:grid-cols-3 gap-4">
+          <div class="md:col-span-1">
+            <div id="locImageArea" class="image-upload-area" onclick="document.getElementById('locImageInput').click()">
+              ${loc && loc.image ? `<img src="${loc.image}" class="w-full h-48 object-cover rounded-lg">` : `
+                <div class="py-6">
+                  <svg class="w-10 h-10 mx-auto text-ink-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  <p class="text-sm text-ink-400">Загрузить фото</p>
+                </div>
+              `}
+              <input type="file" id="locImageInput" accept="image/*" onchange="handleImageUpload(this, 'locImageArea')">
+            </div>
+          </div>
+          <div class="md:col-span-2 space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-ink-600 mb-1">Название *</label>
+              <input id="locName" type="text" value="${loc ? escAttr(loc.name) : ''}" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400" placeholder="Название места">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-ink-600 mb-1">Тип</label>
+              <input id="locType" type="text" value="${loc ? escAttr(loc.type || '') : ''}" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400" placeholder="Город, замок, лес, корабль...">
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-ink-600 mb-1">Описание</label>
+          <textarea id="locDesc" rows="5" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 resize-none" placeholder="Подробное описание места, атмосфера, важные детали...">${loc ? escHtml(loc.description || '') : ''}</textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-ink-600 mb-1">Заметки</label>
+          <textarea id="locNotes" rows="2" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 resize-none" placeholder="Дополнительные заметки...">${loc ? escHtml(loc.notes || '') : ''}</textarea>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-ink-100">
+        <button onclick="closeModal()" class="btn-ghost">Отмена</button>
+        <button onclick="saveLoc()" class="btn-primary">Сохранить</button>
+      </div>
+    </div>
+  `;
+  openModal();
+}
+
+function saveLoc() {
+  const name = document.getElementById('locName').value.trim();
+  if (!name) { showToast('Введите название'); return; }
+
+  const imgEl = document.querySelector('#locImageArea img');
+  const locData = {
+    name,
+    type: document.getElementById('locType').value.trim(),
+    description: document.getElementById('locDesc').value.trim(),
+    notes: document.getElementById('locNotes').value.trim(),
+    image: imgEl ? imgEl.src : ''
+  };
+
+  if (editingId) {
+    const loc = data.locations.find(l => l.id === editingId);
+    Object.assign(loc, locData);
+  } else {
+    data.locations.push({ id: genId(), ...locData, createdAt: new Date().toISOString() });
+  }
+
+  closeModal();
+  renderSection();
+  showToast(editingId ? 'Место обновлено' : 'Место создано');
+}
+
+function deleteLoc(id) {
+  if (!confirm('Удалить это место?')) return;
+  data.locations = data.locations.filter(l => l.id !== id);
+  closeModal();
+  renderSection();
+  showToast('Место удалено');
+}
+
+// ============ PLANNER ============
+function renderPlanner(area) {
+  if (data.works.length === 0) {
+    area.innerHTML = `
+      <div class="fade-in empty-state">
+        <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <p class="text-ink-400 text-lg">Сначала создайте произведение</p>
+        <p class="text-ink-400 text-sm mt-1">Планировщик работает в контексте конкретного произведения</p>
+      </div>
+    `;
+    return;
+  }
+
+  area.innerHTML = `
+    <div class="fade-in max-w-4xl mx-auto">
+      <div class="flex items-center gap-4 mb-6">
+        <label class="text-sm font-medium text-ink-600">Произведение:</label>
+        <select id="plannerWork" onchange="renderPlannerChapters()" class="px-4 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 bg-white">
+          ${data.works.map(w => `<option value="${w.id}">${escHtml(w.title)}</option>`).join('')}
+        </select>
+        <button onclick="openChapterModal()" class="btn-primary ml-auto flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Добавить главу
+        </button>
+      </div>
+      <div id="chaptersContainer"></div>
+    </div>
+  `;
+  renderPlannerChapters();
+}
+
+function renderPlannerChapters() {
+  const workId = document.getElementById('plannerWork')?.value || data.works[0]?.id;
+  const work = data.works.find(w => w.id === workId);
+  if (!work) return;
+
+  const container = document.getElementById('chaptersContainer');
+  const chapters = (work.chapters || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+
+  if (chapters.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state bg-white rounded-xl border border-ink-200 p-10">
+        <p class="text-ink-400 text-lg">В этом произведении пока нет глав</p>
+        <p class="text-ink-400 text-sm mt-1">Добавьте первую главу, чтобы начать планирование</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="space-y-4">
+      ${chapters.map((ch, idx) => {
+        const chars = (ch.characterIds || []).map(cid => data.characters.find(c => c.id === cid)).filter(Boolean);
+        const loc = data.locations.find(l => l.id === ch.locationId);
+        return `
+          <div class="bg-white rounded-xl border border-ink-200 p-5 card-hover slide-in">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-sage-100 flex items-center justify-center text-sage-700 font-bold font-serif text-lg">${idx + 1}</div>
+                <div>
+                  <h4 class="font-serif text-lg font-semibold text-ink-800">${escHtml(ch.title)}</h4>
+                  <div class="flex items-center gap-3 mt-1 text-xs text-ink-400">
+                    <span>📝 ${countWords(ch.description || '').toLocaleString()} слов</span>
+                    ${ch.pov ? `<span>👁 ${escHtml(ch.pov)}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="moveChapter('${workId}', '${ch.id}', -1)" class="p-1.5 hover:bg-ink-50 rounded text-ink-400 hover:text-ink-600" ${idx === 0 ? 'disabled' : ''}>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                </button>
+                <button onclick="moveChapter('${workId}', '${ch.id}', 1)" class="p-1.5 hover:bg-ink-50 rounded text-ink-400 hover:text-ink-600" ${idx === chapters.length - 1 ? 'disabled' : ''}>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <button onclick="openChapterModal('${workId}', '${ch.id}')" class="p-1.5 hover:bg-ink-50 rounded text-ink-400 hover:text-ink-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                </button>
+                <button onclick="deleteChapter('${workId}', '${ch.id}')" class="p-1.5 hover:bg-ink-50 rounded text-ink-400 hover:text-burgundy-500">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            </div>
+            ${ch.description ? `<p class="text-sm text-ink-600 mt-3 pl-[52px] line-clamp-2">${escHtml(ch.description)}</p>` : ''}
+            <div class="flex flex-wrap items-center gap-2 mt-3 pl-[52px]">
+              ${chars.map(c => `<span class="badge bg-parchment-100 text-parchment-800">${escHtml(c.name)}</span>`).join('')}
+              ${loc ? `<span class="badge bg-sage-100 text-sage-700">📍 ${escHtml(loc.name)}</span>` : ''}
+              ${(ch.characterIds || []).length === 0 && !ch.locationId ? '<span class="text-xs text-ink-300">Нет персонажей и мест</span>' : ''}
+            </div>
+            ${ch.notes ? `<p class="text-xs text-ink-400 mt-2 pl-[52px] italic">📌 ${escHtml(ch.notes)}</p>` : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function openChapterModal(workId, chapterId) {
+  const wId = workId || document.getElementById('plannerWork').value;
+  const work = data.works.find(w => w.id === wId);
+  const chapter = chapterId ? work?.chapters?.find(c => c.id === chapterId) : null;
+  editingId = chapterId;
+
+  const selectedChars = chapter ? (chapter.characterIds || []) : [];
+  const selectedLoc = chapter ? (chapter.locationId || '') : '';
+  const maxOrder = work ? Math.max(0, ...(work.chapters || []).map(c => c.order || 0)) : 0;
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="font-serif text-2xl font-bold">${chapter ? 'Редактировать главу' : 'Новая глава'}</h3>
+      </div>
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-ink-600 mb-1">Название *</label>
+            <input id="chTitle" type="text" value="${chapter ? escAttr(chapter.title) : ''}" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400" placeholder="Название главы">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ink-600 mb-1">Порядок</label>
+            <input id="chOrder" type="number" value="${chapter ? chapter.order : maxOrder + 1}" min="1" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-ink-600 mb-1">Точка зрения (POV)</label>
+          <input id="chPov" type="text" value="${chapter ? escAttr(chapter.pov || '') : ''}" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400" placeholder="От чьего лица рассказывается?">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-ink-600 mb-1">Что происходит</label>
+          <textarea id="chDesc" rows="4" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 resize-none" placeholder="Описание событий главы...">${chapter ? escHtml(chapter.description || '') : ''}</textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-ink-600 mb-1">Персонажи в главе</label>
+          <div class="max-h-32 overflow-y-auto border border-ink-200 rounded-lg p-3 space-y-1">
+            ${data.characters.length === 0 ? '<p class="text-xs text-ink-400">Сначала создайте персонажей</p>' :
+              data.characters.map(c => `
+                <label class="flex items-center gap-2 cursor-pointer py-1">
+                  <input type="checkbox" class="char-checkbox rounded border-ink-300 text-sage-600 focus:ring-sage-400" value="${c.id}" ${selectedChars.includes(c.id) ? 'checked' : ''}>
+                  <span class="text-sm">${escHtml(c.name)}</span>
+                </label>
+              `).join('')
+            }
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-ink-600 mb-1">Место действия</label>
+          <select id="chLocation" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400">
+            <option value="">Выберите место</option>
+            ${data.locations.map(l => `<option value="${l.id}" ${selectedLoc === l.id ? 'selected' : ''}>${escHtml(l.name)}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-ink-600 mb-1">Заметки</label>
+          <textarea id="chNotes" rows="2" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 resize-none" placeholder="Заметки для себя...">${chapter ? escHtml(chapter.notes || '') : ''}</textarea>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-ink-100">
+        <button onclick="closeModal()" class="btn-ghost">Отмена</button>
+        <button onclick="saveChapter('${wId}')" class="btn-primary">Сохранить</button>
+      </div>
+    </div>
+  `;
+  openModal();
+}
+
+function saveChapter(workId) {
+  const title = document.getElementById('chTitle').value.trim();
+  if (!title) { showToast('Введите название'); return; }
+
+  const work = data.works.find(w => w.id === workId);
+  if (!work) return;
+  if (!work.chapters) work.chapters = [];
+
+  const charIds = Array.from(document.querySelectorAll('.char-checkbox:checked')).map(cb => cb.value);
+  const chData = {
+    title,
+    order: parseInt(document.getElementById('chOrder').value) || 1,
+    pov: document.getElementById('chPov').value.trim(),
+    description: document.getElementById('chDesc').value.trim(),
+    characterIds: charIds,
+    locationId: document.getElementById('chLocation').value,
+    notes: document.getElementById('chNotes').value.trim()
+  };
+
+  if (editingId) {
+    const ch = work.chapters.find(c => c.id === editingId);
+    Object.assign(ch, chData);
+  } else {
+    work.chapters.push({ id: genId(), ...chData });
+  }
+
+  closeModal();
+  renderPlannerChapters();
+  showToast(editingId ? 'Глава обновлена' : 'Глава создана');
+}
+
+function deleteChapter(workId, chId) {
+  if (!confirm('Удалить эту главу?')) return;
+  const work = data.works.find(w => w.id === workId);
+  if (work) {
+    work.chapters = (work.chapters || []).filter(c => c.id !== chId);
+  }
+  renderPlannerChapters();
+  showToast('Глава удалена');
+}
+
+function moveChapter(workId, chId, dir) {
+  const work = data.works.find(w => w.id === workId);
+  if (!work) return;
+  const chapters = (work.chapters || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+  const idx = chapters.findIndex(c => c.id === chId);
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= chapters.length) return;
+
+  // Swap orders
+  const temp = chapters[idx].order;
+  chapters[idx].order = chapters[newIdx].order;
+  chapters[newIdx].order = temp;
+  renderPlannerChapters();
+}
+
+// ============ RELATIONSHIPS ============
+function renderRelationships(area) {
+  if (data.characters.length < 2) {
+    area.innerHTML = `
+      <div class="fade-in empty-state">
+        <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+        <p class="text-ink-400 text-lg">Нужно минимум 2 персонажа</p>
+        <p class="text-ink-400 text-sm mt-1">Создайте персонажей, чтобы строить связи</p>
+      </div>
+    `;
+    return;
+  }
+
+  area.innerHTML = `
+    <div class="fade-in">
+      <div class="flex justify-between items-center mb-6">
+        <p class="text-ink-500 text-sm">${data.relationships.length} связей</p>
+        <button onclick="openRelModal()" class="btn-primary flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Новая связь
+        </button>
+      </div>
+      <div class="grid lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2">
+          <div class="bg-white rounded-xl border border-ink-200 p-4">
+            <canvas id="graphCanvas" class="w-full graph-canvas" style="height: 500px;"></canvas>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <h3 class="font-serif text-lg font-semibold">Список связей</h3>
+          ${data.relationships.length === 0 ? '<p class="text-sm text-ink-400">Пока нет связей</p>' :
+            data.relationships.map(r => {
+              const c1 = data.characters.find(c => c.id === r.characterId1);
+              const c2 = data.characters.find(c => c.id === r.characterId2);
+              const rType = RELATIONSHIP_TYPES.find(t => t.id === r.type);
+              return `
+                <div class="bg-white rounded-lg border border-ink-200 p-3 text-sm">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <span class="font-medium">${escHtml(c1?.name || '?')}</span>
+                      <span class="mx-2" style="color: ${rType?.color || '#7a6e60'}">${rType?.icon || '•'}</span>
+                      <span class="font-medium">${escHtml(c2?.name || '?')}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <button onclick="openRelModal('${r.id}')" class="p-1 text-ink-400 hover:text-ink-600">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                      </button>
+                      <button onclick="deleteRel('${r.id}')" class="p-1 text-ink-400 hover:text-burgundy-500">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="mt-1 text-xs text-ink-400">
+                    <span class="px-2 py-0.5 rounded" style="background: ${rType?.color}20; color: ${rType?.color}">${rType?.label || r.customType || 'Другое'}</span>
+                    ${r.description ? `<p class="mt-1">${escHtml(r.description)}</p>` : ''}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  setTimeout(drawGraph, 100);
+}
+
+function drawGraph() {
+  const canvas = document.getElementById('graphCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width - 32;
+  canvas.height = 500;
+
+  const chars = data.characters;
+  const rels = data.relationships;
+
+  // Position characters in a circle
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const radius = Math.min(cx, cy) - 60;
+  const positions = {};
+
+  chars.forEach((ch, i) => {
+    const angle = (2 * Math.PI * i) / chars.length - Math.PI / 2;
+    positions[ch.id] = {
+      x: cx + radius * Math.cos(angle),
+      y: cy + radius * Math.sin(angle)
+    };
+  });
+
+  // Draw edges
+  rels.forEach(r => {
+    const p1 = positions[r.characterId1];
+    const p2 = positions[r.characterId2];
+    if (!p1 || !p2) return;
+
+    const rType = RELATIONSHIP_TYPES.find(t => t.id === r.type);
+    const color = rType?.color || '#7a6e60';
+
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Label on edge
+    const mx = (p1.x + p2.x) / 2;
+    const my = (p1.y + p2.y) / 2;
+    ctx.fillStyle = '#fff';
+    const tw = ctx.measureText(rType?.label || '').width;
+    ctx.fillRect(mx - tw/2 - 4, my - 8, tw + 8, 16);
+    ctx.fillStyle = color;
+    ctx.font = '11px Inter';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(rType?.label || r.customType || '', mx, my);
+  });
+
+  // Draw nodes
+  chars.forEach(ch => {
+    const pos = positions[ch.id];
+    if (!pos) return;
+
+    // Shadow
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y + 2, 24, 0, 2 * Math.PI);
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    ctx.fill();
+
+    // Circle
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, 24, 0, 2 * Math.PI);
+    const grad = ctx.createRadialGradient(pos.x - 5, pos.y - 5, 0, pos.x, pos.y, 24);
+    grad.addColorStop(0, '#f9f0e0');
+    grad.addColorStop(1, '#e8cc9a');
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.strokeStyle = '#c49540';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Name
+    ctx.fillStyle = '#2a2420';
+    ctx.font = 'bold 13px Cormorant Garamond';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const name = ch.name.length > 10 ? ch.name.substring(0, 9) + '…' : ch.name;
+    ctx.fillText(name, pos.x, pos.y + 38);
+  });
+}
+
+function openRelModal(id) {
+  const rel = id ? data.relationships.find(r => r.id === id) : null;
+  editingId = id;
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="font-serif text-2xl font-bold">${rel ? 'Редактировать связь' : 'Новая связь'}</h3>
+      </div>
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-ink-600 mb-1">Персонаж 1</label>
+            <select id="relChar1" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400">
+              <option value="">Выберите</option>
+              ${data.characters.map(c => `<option value="${c.id}" ${rel && rel.characterId1 === c.id ? 'selected' : ''}>${escHtml(c.name)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ink-600 mb-1">Персонаж 2</label>
+            <select id="relChar2" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400">
+              <option value="">Выберите</option>
+              ${data.characters.map(c => `<option value="${c.id}" ${rel && rel.characterId2 === c.id ? 'selected' : ''}>${escHtml(c.name)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-ink-600 mb-1">Тип связи</label>
+          <div class="grid grid-cols-2 gap-2">
+            ${RELATIONSHIP_TYPES.map(t => `
+              <label class="flex items-center gap-2 p-2.5 border rounded-lg cursor-pointer transition-colors hover:bg-ink-50 ${rel && rel.type === t.id ? 'border-sage-400 bg-sage-50' : 'border-ink-200'}">
+                <input type="radio" name="relType" value="${t.id}" class="text-sage-600 focus:ring-sage-400" ${rel && rel.type === t.id ? 'checked' : ''}>
+                <span class="text-lg">${t.icon}</span>
+                <span class="text-sm">${t.label}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+        <div id="relCustomTypeArea" class="hidden">
+          <label class="block text-sm font-medium text-ink-600 mb-1">Укажите тип</label>
+          <input id="relCustomType" type="text" value="${rel && rel.type === 'custom' ? escAttr(rel.customType || '') : ''}" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400" placeholder="Ваш тип связи">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-ink-600 mb-1">Описание связи</label>
+          <textarea id="relDesc" rows="3" class="w-full px-4 py-2.5 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 resize-none" placeholder="Опишите характер взаимоотношений...">${rel ? escHtml(rel.description || '') : ''}</textarea>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-ink-100">
+        <button onclick="closeModal()" class="btn-ghost">Отмена</button>
+        <button onclick="saveRel()" class="btn-primary">Сохранить</button>
+      </div>
+    </div>
+  `;
+  openModal();
+
+  // Toggle custom type area
+  document.querySelectorAll('input[name="relType"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      document.getElementById('relCustomTypeArea').classList.toggle('hidden', this.value !== 'custom');
+    });
+  });
+}
+
+function saveRel() {
+  const c1 = document.getElementById('relChar1').value;
+  const c2 = document.getElementById('relChar2').value;
+  if (!c1 || !c2) { showToast('Выберите обоих персонажей'); return; }
+  if (c1 === c2) { showToast('Выберите разных персонажей'); return; }
+
+  const typeRadio = document.querySelector('input[name="relType"]:checked');
+  const type = typeRadio ? typeRadio.value : '';
+
+  const relData = {
+    characterId1: c1,
+    characterId2: c2,
+    type,
+    customType: type === 'custom' ? document.getElementById('relCustomType').value.trim() : '',
+    description: document.getElementById('relDesc').value.trim()
+  };
+
+  if (editingId) {
+    const rel = data.relationships.find(r => r.id === editingId);
+    Object.assign(rel, relData);
+  } else {
+    data.relationships.push({ id: genId(), ...relData });
+  }
+
+  closeModal();
+  renderSection();
+  showToast(editingId ? 'Связь обновлена' : 'Связь создана');
+}
+
+function deleteRel(id) {
+  if (!confirm('Удалить эту связь?')) return;
+  data.relationships = data.relationships.filter(r => r.id !== id);
+  renderSection();
+  showToast('Связь удалена');
+}
+
+// ============ TOOLS ============
+function renderTools(area) {
+  area.innerHTML = `
+    <div class="fade-in max-w-4xl mx-auto space-y-6">
+      <!-- Word Counter -->
+      <div class="bg-white rounded-xl border border-ink-200 p-6">
+        <h3 class="font-serif text-xl font-semibold mb-4">📝 Счётчик слов</h3>
+        <textarea id="wordCounterInput" rows="6" class="w-full px-4 py-3 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 resize-none font-mono text-sm" placeholder="Вставьте или напишите текст..." oninput="updateWordCounter()"></textarea>
+        <div class="flex flex-wrap gap-4 mt-3 text-sm">
+          <div class="stat-card rounded-lg px-4 py-2">
+            <span class="font-bold text-lg" id="wcWords">0</span> <span class="text-ink-500">слов</span>
+          </div>
+          <div class="stat-card rounded-lg px-4 py-2">
+            <span class="font-bold text-lg" id="wcChars">0</span> <span class="text-ink-500">символов</span>
+          </div>
+          <div class="stat-card rounded-lg px-4 py-2">
+            <span class="font-bold text-lg" id="wcCharsNS">0</span> <span class="text-ink-500">без пробелов</span>
+          </div>
+          <div class="stat-card rounded-lg px-4 py-2">
+            <span class="font-bold text-lg" id="wcSentences">0</span> <span class="text-ink-500">предложений</span>
+          </div>
+          <div class="stat-card rounded-lg px-4 py-2">
+            <span class="font-bold text-lg" id="wcPages">0</span> <span class="text-ink-500">стр. (40k знаков)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Name Generator -->
+      <div class="bg-white rounded-xl border border-ink-200 p-6">
+        <h3 class="font-serif text-xl font-semibold mb-4">🎭 Генератор имён</h3>
+        <div class="flex gap-3 mb-4">
+          <select id="nameGender" class="px-4 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400">
+            <option value="any">Любой</option>
+            <option value="male">Мужское</option>
+            <option value="female">Женское</option>
+          </select>
+          <select id="nameStyle" class="px-4 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400">
+            <option value="russian">Русские</option>
+            <option value="european">Европейские</option>
+            <option value="fantasy">Фэнтези</option>
+          </select>
+          <button onclick="generateNames()" class="btn-primary">Сгенерировать</button>
+        </div>
+        <div id="nameResults" class="flex flex-wrap gap-2">
+          <span class="text-sm text-ink-400">Нажмите кнопку для генерации</span>
+        </div>
+      </div>
+
+      <!-- Writing Prompts -->
+      <div class="bg-white rounded-xl border border-ink-200 p-6">
+        <h3 class="font-serif text-xl font-semibold mb-4">💡 Генератор подсказок</h3>
+        <div id="toolPrompt" class="writing-prompt rounded-lg p-5 mb-4">
+          <p class="text-ink-700 italic">${WRITING_PROMPTS[Math.floor(Math.random() * WRITING_PROMPTS.length)]}</p>
+        </div>
+        <button onclick="generateToolPrompt()" class="btn-primary">Другая подсказка</button>
+      </div>
+
+      <!-- Character Randomizer -->
+      <div class="bg-white rounded-xl border border-ink-200 p-6">
+        <h3 class="font-serif text-xl font-semibold mb-4">🎲 Случайная комбинация</h3>
+        <p class="text-sm text-ink-500 mb-4">Генерирует случайную комбинацию персонажа, места и ситуации для вдохновения</p>
+        <div id="randomCombo" class="space-y-3 mb-4"></div>
+        <button onclick="generateRandomCombo()" class="btn-primary">Сгенерировать</button>
+      </div>
+    </div>
+  `;
+}
+
+function updateWordCounter() {
+  const text = document.getElementById('wordCounterInput').value;
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const chars = text.length;
+  const charsNS = text.replace(/\s/g, '').length;
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim()).length;
+  const pages = (chars / 40000).toFixed(2);
+
+  document.getElementById('wcWords').textContent = words.toLocaleString();
+  document.getElementById('wcChars').textContent = chars.toLocaleString();
+  document.getElementById('wcCharsNS').textContent = charsNS.toLocaleString();
+  document.getElementById('wcSentences').textContent = sentences;
+  document.getElementById('wcPages').textContent = pages;
+}
+
+function generateNames() {
+  const gender = document.getElementById('nameGender').value;
+  const style = document.getElementById('nameStyle').value;
+
+  const names = {
+    russian: {
+      male: ['Александр', 'Дмитрий', 'Максим', 'Артём', 'Иван', 'Михаил', 'Даниил', 'Никита', 'Егор', 'Андрей', 'Кирилл', 'Фёдор', 'Владимир', 'Борис', 'Степан'],
+      female: ['Анна', 'Мария', 'Елена', 'Ольга', 'Наталья', 'Екатерина', 'Татьяна', 'Ирина', 'Светлана', 'Виктория', 'Алиса', 'Полина', 'Софья', 'Варвара', 'Дарья']
+    },
+    european: {
+      male: ['Oliver', 'Arthur', 'Felix', 'Leo', 'Hugo', 'Theodore', 'Jasper', 'Sebastian', 'Adrian', 'Julian', 'Edgar', 'Vincent', 'Raphael', 'Silas', 'Miles'],
+      female: ['Eleanor', 'Clara', 'Iris', 'Violet', 'Genevieve', 'Rosalind', 'Cordelia', 'Beatrice', 'Margaret', 'Josephine', 'Cecilia', 'Evangeline', 'Isolde', 'Ophelia', 'Seraphina']
+    },
+    fantasy: {
+      male: ['Аэриан', 'Торион', 'Зарэль', 'Кайден', 'Элдар', 'Фенрир', 'Драко', 'Талон', 'Азраэль', 'Мордред', 'Тандрил', 'Ворион', 'Галадрион', 'Сильвер', 'Тёмный Странник'],
+      female: ['Элара', 'Изольда', 'Серафина', 'Лириэль', 'Аврора', 'Мирабель', 'Талисса', 'Нимфея', 'Аэлин', 'Кассандра', 'Эвелина', 'Веспер', 'Люциана', 'Селестия', 'Астрид']
+    }
+  };
+
+  let pool = [];
+  if (gender === 'any') {
+    pool = [...names[style].male, ...names[style].female];
+  } else {
+    pool = names[style][gender];
+  }
+
+  const results = [];
+  while (results.length < 5) {
+    const name = pool[Math.floor(Math.random() * pool.length)];
+    if (!results.includes(name)) results.push(name);
+  }
+
+  document.getElementById('nameResults').innerHTML = results.map(n => `
+    <button onclick="navigator.clipboard.writeText('${n}'); showToast('Скопировано')" class="px-4 py-2 bg-sage-50 text-sage-700 rounded-lg text-sm font-medium hover:bg-sage-100 transition-colors cursor-pointer">${n}</button>
+  `).join('');
+}
+
+function generateToolPrompt() {
+  const prompt = WRITING_PROMPTS[Math.floor(Math.random() * WRITING_PROMPTS.length)];
+  document.getElementById('toolPrompt').innerHTML = `<p class="text-ink-700 italic fade-in">${prompt}</p>`;
+}
+
+function generateRandomCombo() {
+  if (data.characters.length === 0 || data.locations.length === 0) {
+    document.getElementById('randomCombo').innerHTML = '<p class="text-sm text-ink-400">Создайте персонажей и места для генерации</p>';
+    return;
+  }
+
+  const char = data.characters[Math.floor(Math.random() * data.characters.length)];
+  const loc = data.locations[Math.floor(Math.random() * data.locations.length)];
+  const situations = [
+    'встречает неожиданного гостя',
+    'обнаруживает тайну',
+    'принимает невозможное решение',
+    'теряет что-то важное',
+    'сталкивается с предательством',
+    'находит старый артефакт',
+    'получает загадочное послание',
+    'попадает в ловушку',
+    'вспоминает забытое прошлое',
+    'завязывает неожиданный союз',
+    'теряет рассудок',
+    'спасает незнакомца'
+  ];
+  const situation = situations[Math.floor(Math.random() * situations.length)];
+
+  document.getElementById('randomCombo').innerHTML = `
+    <div class="flex items-center gap-3 p-3 bg-parchment-50 rounded-lg fade-in">
+      <span class="text-2xl">👤</span>
+      <span class="font-medium">${escHtml(char.name)}</span>
+    </div>
+    <div class="text-center text-ink-400 fade-in">${situation}</div>
+    <div class="flex items-center gap-3 p-3 bg-sage-50 rounded-lg fade-in">
+      <span class="text-2xl">📍</span>
+      <span class="font-medium">${escHtml(loc.name)}</span>
+    </div>
+  `;
+}
+
+// ============ SEARCH ============
+function handleGlobalSearch(query) {
+  if (!query.trim()) {
+    renderSection();
+    return;
+  }
+
+  const q = query.toLowerCase();
+  const results = [];
+
+  data.works.forEach(w => {
+    if (w.title.toLowerCase().includes(q) || (w.description || '').toLowerCase().includes(q)) {
+      results.push({ type: 'Произведение', name: w.title, section: 'works', id: w.id });
+    }
+  });
+
+  data.characters.forEach(c => {
+    if (c.name.toLowerCase().includes(q) || (c.description || '').toLowerCase().includes(q) || (c.appearance || '').toLowerCase().includes(q)) {
+      results.push({ type: 'Персонаж', name: c.name, section: 'characters', id: c.id });
+    }
+  });
+
+  data.locations.forEach(l => {
+    if (l.name.toLowerCase().includes(q) || (l.description || '').toLowerCase().includes(q)) {
+      results.push({ type: 'Место', name: l.name, section: 'locations', id: l.id });
+    }
+  });
+
+  const area = document.getElementById('contentArea');
+  if (results.length === 0) {
+    area.innerHTML = `<div class="fade-in empty-state"><p class="text-ink-400">Ничего не найдено по запросу "${escHtml(query)}"</p></div>`;
+  } else {
+    area.innerHTML = `
+      <div class="fade-in max-w-2xl mx-auto">
+        <p class="text-sm text-ink-500 mb-4">Найдено: ${results.length} результатов</p>
+        <div class="space-y-2">
+          ${results.map(r => `
+            <div class="bg-white rounded-lg border border-ink-200 p-4 flex items-center justify-between cursor-pointer hover:bg-ink-50 transition-colors" onclick="goToResult('${r.section}', '${r.id}')">
+              <div>
+                <span class="badge bg-ink-100 text-ink-600">${r.type}</span>
+                <span class="font-medium text-ink-800 ml-2">${escHtml(r.name)}</span>
+              </div>
+              <svg class="w-4 h-4 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+}
+
+function goToResult(section, id) {
+  document.getElementById('globalSearch').value = '';
+  showSection(section);
+  if (section === 'works') openWorkModal(id);
+  else if (section === 'characters') openCharModal(id);
+  else if (section === 'locations') openLocModal(id);
+}
+
+// ============ SAVE/LOAD ============
+function saveProject() {
+  localStorage.setItem('writerAssistant', JSON.stringify(data));
+  document.getElementById('lastSaved').textContent = 'Сохранено: ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  showToast('Проект сохранён');
+}
+
+function loadProject() {
+  const saved = localStorage.getItem('writerAssistant');
+  if (saved) {
+    try {
+      data = JSON.parse(saved);
+      renderSection();
+      showToast('Проект загружен');
+    } catch (e) {
+      showToast('Ошибка загрузки');
+    }
+  } else {
+    showToast('Нет сохранённых данных');
+  }
+}
+
+function exportProject() {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'writer-assistant-' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Проект экспортирован');
+}
+
+function importProject(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      data = JSON.parse(e.target.result);
+      renderSection();
+      showToast('Проект импортирован');
+    } catch (err) {
+      showToast('Ошибка импорта');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ============ UTILS ============
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+}
+
+function escHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function escAttr(str) {
+  return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastText').textContent = msg;
+  toast.classList.remove('hidden');
+  setTimeout(() => toast.classList.add('hidden'), 2500);
+}
+
+function openModal() {
+  document.getElementById('modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.add('hidden');
+  document.body.style.overflow = '';
+  editingId = null;
+}
+
+function handleImageUpload(input, areaId) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const area = document.getElementById(areaId);
+    area.innerHTML = `<img src="${e.target.result}" class="w-full h-48 object-cover rounded-lg">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ============ INIT ============
+// Auto-load from localStorage
+const saved = localStorage.getItem('writerAssistant');
+if (saved) {
+  try { data = JSON.parse(saved); } catch (e) {}
+}
+
+showSection('dashboard');
+
+// Auto-save every 30 seconds
+setInterval(() => {
+  localStorage.setItem('writerAssistant', JSON.stringify(data));
+  document.getElementById('lastSaved').textContent = 'Автосохранение: ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+}, 30000);
+
+// Handle keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal();
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveProject();
+  }
+});
+</script>
+</body>
+</html>
+
