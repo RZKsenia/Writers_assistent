@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ассистент Писателя</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title> Ассистент   Писателя </title>
+<!-- Google Fonts удалены, используются системные шрифты -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
   theme: {
     extend: {
       fontFamily: {
-        serif: ['Cormorant Garamond', 'Georgia', 'serif'],
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        serif: ['Georgia', 'Times New Roman', 'Cormorant Garamond', 'serif'],
+        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Inter', 'sans-serif'],
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'JetBrains Mono', 'monospace'],
       },
       colors: {
         parchment: { 50: '#fdf8f0', 100: '#f9f0e0', 200: '#f2e0c0', 300: '#e8cc9a', 400: '#d4a855', 500: '#c49540', 600: '#a87830', 700: '#8a6028', 800: '#6d4d22', 900: '#523a1a' },
@@ -27,8 +27,8 @@ tailwind.config = {
 </script>
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'Inter', sans-serif; }
-  .font-serif { font-family: 'Cormorant Garamond', serif; }
+  body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+  .font-serif { font-family: Georgia, 'Times New Roman', serif; }
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: #b8aea0; border-radius: 3px; }
@@ -42,7 +42,7 @@ tailwind.config = {
   .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
   .tab-active { border-bottom: 2px solid #527a52; color: #334d33; }
   .nav-active { background: rgba(82, 122, 82, 0.1); color: #3d603d; }
-  textarea, input, select { font-family: 'Inter', sans-serif; }
+  textarea, input, select { font-family: inherit; }
   .char-card-gradient { background: linear-gradient(135deg, #f9f0e0 0%, #f2e0c0 100%); }
   .loc-card-gradient { background: linear-gradient(135deg, #e3ebe3 0%, #c5d6c5 100%); }
   .work-card-gradient { background: linear-gradient(135deg, #fce7e7 0%, #f9d0d0 100%); }
@@ -76,12 +76,11 @@ tailwind.config = {
 </style>
 </head>
 <body class="bg-ink-50 text-ink-800 min-h-screen">
-
 <div id="app" class="flex h-screen overflow-hidden">
   <!-- Sidebar -->
   <aside id="sidebar" class="w-64 bg-ink-900 text-ink-200 flex flex-col flex-shrink-0 transition-all duration-300">
     <div class="p-5 border-b border-ink-700">
-      <h1 class="font-serif text-2xl text-parchment-200 font-bold tracking-wide">✦ Ассистент<br><span class="text-lg text-ink-400">Писателя</span></h1>
+      <h1 class="font-serif text-2xl text-parchment-200 font-bold tracking-wide"> ✦   Ассистент <br><span class="text-lg text-ink-400"> Писателя </span></h1>
     </div>
     <nav class="flex-1 py-4 px-3 space-y-1">
       <button onclick="showSection('dashboard')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-ink-800 transition-colors" data-section="dashboard">
@@ -134,7 +133,6 @@ tailwind.config = {
       </label>
     </div>
   </aside>
-
   <!-- Main Content -->
   <main class="flex-1 flex flex-col overflow-hidden">
     <!-- Top Bar -->
@@ -150,14 +148,12 @@ tailwind.config = {
         <span id="lastSaved" class="text-xs text-ink-400"></span>
       </div>
     </header>
-
     <!-- Content Area -->
     <div id="contentArea" class="flex-1 overflow-y-auto p-6">
       <!-- Sections will be rendered here -->
     </div>
   </main>
 </div>
-
 <!-- Modal -->
 <div id="modal" class="fixed inset-0 z-50 hidden">
   <div class="modal-overlay absolute inset-0" onclick="closeModal()"></div>
@@ -166,7 +162,6 @@ tailwind.config = {
     </div>
   </div>
 </div>
-
 <!-- Toast -->
 <div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
   <div class="bg-ink-800 text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 fade-in">
@@ -174,7 +169,6 @@ tailwind.config = {
     <span id="toastText" class="text-sm"></span>
   </div>
 </div>
-
 <script>
 // ============ DATA ============
 let data = {
@@ -184,25 +178,21 @@ let data = {
   relationships: [],
   prompts: []
 };
-
 let currentSection = 'dashboard';
 let editingId = null;
-
 const RELATIONSHIP_TYPES = [
-  { id: 'friend', label: 'Друг', color: '#527a52', icon: '🤝' },
-  { id: 'enemy', label: 'Враг', color: '#ab2525', icon: '⚔️' },
-  { id: 'family', label: 'Семья', color: '#8a6028', icon: '👨‍👩‍👧' },
-  { id: 'love', label: 'Возлюбленные', color: '#df4b4b', icon: '❤️' },
-  { id: 'mentor', label: 'Наставник', color: '#63574c', icon: '🎓' },
-  { id: 'rival', label: 'Соперник', color: '#968a7a', icon: '🏆' },
-  { id: 'colleague', label: 'Коллега', color: '#5b7fa5', icon: '💼' },
-  { id: 'acquaintance', label: 'Знакомый', color: '#b8aea0', icon: '👋' },
-  { id: 'secret', label: 'Тайная связь', color: '#6b21a8', icon: '🤫' },
-  { id: 'custom', label: 'Другое', color: '#7a6e60', icon: '✏️' }
+  { id: 'friend', label: 'Друг', color: '#527a52', icon: ' 🤝 ' },
+  { id: 'enemy', label: 'Враг', color: '#ab2525', icon: ' ⚔ ️' },
+  { id: 'family', label: 'Семья', color: '#8a6028', icon: ' 👨 ‍ 👩 ‍ 👧 ' },
+  { id: 'love', label: 'Возлюбленные', color: '#df4b4b', icon: ' ❤ ️' },
+  { id: 'mentor', label: 'Наставник', color: '#63574c', icon: ' 🎓 ' },
+  { id: 'rival', label: 'Соперник', color: '#968a7a', icon: ' 🏆 ' },
+  { id: 'colleague', label: 'Коллега', color: '#5b7fa5', icon: ' 💼 ' },
+  { id: 'acquaintance', label: 'Знакомый', color: '#b8aea0', icon: ' 👋 ' },
+  { id: 'secret', label: 'Тайная связь', color: '#6b21a8', icon: ' 🤫 ' },
+  { id: 'custom', label: 'Другое', color: '#7a6e60', icon: ' ✏ ️' }
 ];
-
 const GENRES = ['Фэнтези', 'Научная фантастика', 'Детектив', 'Роман', 'Триллер', 'Ужасы', 'Исторический', 'Приключения', 'Драма', 'Комедия', 'Поэзия', 'Другое'];
-
 const WRITING_PROMPTS = [
   "Персонаж находит в старом пальто записку, написанную его почерком, но он её не писал...",
   "Два незнакомца оказываются заперты в комнате. У каждого из них — половина одного и того же ключа.",
@@ -217,7 +207,6 @@ const WRITING_PROMPTS = [
   "Старый мост в городе начинает шептать имена тех, кто по нему проходит.",
   "Персонаж обнаруживает, что его сны — это чужие воспоминания."
 ];
-
 // ============ NAVIGATION ============
 function showSection(section) {
   currentSection = section;
@@ -232,7 +221,6 @@ function showSection(section) {
   document.getElementById('sectionTitle').textContent = titles[section] || '';
   renderSection();
 }
-
 function renderSection() {
   const area = document.getElementById('contentArea');
   switch (currentSection) {
@@ -245,14 +233,12 @@ function renderSection() {
     case 'tools': renderTools(area); break;
   }
 }
-
 // ============ DASHBOARD ============
 function renderDashboard(area) {
   const totalWords = countTotalWords();
   const wordGoal = 50000;
   const progress = Math.min((totalWords / wordGoal) * 100, 100);
   const prompt = WRITING_PROMPTS[Math.floor(Math.random() * WRITING_PROMPTS.length)];
-
   area.innerHTML = `
     <div class="fade-in space-y-6 max-w-6xl mx-auto">
       <!-- Stats -->
@@ -274,7 +260,6 @@ function renderDashboard(area) {
           <div class="text-sm text-ink-500 mt-1">Слов всего</div>
         </div>
       </div>
-
       <!-- Word Count Goal -->
       <div class="bg-white rounded-xl p-5 border border-ink-200">
         <div class="flex items-center justify-between mb-3">
@@ -290,21 +275,19 @@ function renderDashboard(area) {
           <span>${wordGoal.toLocaleString()}</span>
         </div>
       </div>
-
       <!-- Writing Prompt -->
       <div class="writing-prompt rounded-xl p-6">
         <div class="flex items-start gap-3">
-          <span class="text-2xl">💡</span>
+          <span class="text-2xl"> 💡 </span>
           <div>
             <h3 class="font-serif text-lg font-semibold text-sage-700 mb-2">Подсказка для вдохновения</h3>
             <p class="text-ink-700 italic">${prompt}</p>
             <button onclick="refreshPrompt()" class="mt-3 text-sm text-sage-600 hover:text-sage-800 font-medium transition-colors">
-              ↻ Другая подсказка
+  ↻   Другая   подсказка
             </button>
           </div>
         </div>
       </div>
-
       <!-- Quick Access -->
       <div class="grid md:grid-cols-2 gap-6">
         <div class="bg-white rounded-xl border border-ink-200 p-5">
@@ -336,11 +319,9 @@ function renderDashboard(area) {
     </div>
   `;
 }
-
 function refreshPrompt() {
   renderDashboard(document.getElementById('contentArea'));
 }
-
 function countTotalWords() {
   let count = 0;
   data.characters.forEach(c => { count += countWords(c.description || ''); count += countWords(c.appearance || ''); });
@@ -352,21 +333,17 @@ function countTotalWords() {
   data.relationships.forEach(r => { count += countWords(r.description || ''); });
   return count;
 }
-
 function countWords(text) {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
 }
-
 function getStatusBadge(status) {
   const map = { draft: 'bg-ink-100 text-ink-600', writing: 'bg-sage-100 text-sage-700', editing: 'bg-parchment-100 text-parchment-700', done: 'bg-blue-100 text-blue-700' };
   return map[status] || 'bg-ink-100 text-ink-600';
 }
-
 function getStatusText(status) {
   const map = { draft: 'Черновик', writing: 'В процессе', editing: 'Редактирование', done: 'Завершено' };
   return map[status] || 'Черновик';
 }
-
 // ============ WORKS ============
 function renderWorks(area) {
   area.innerHTML = `
@@ -399,9 +376,9 @@ function renderWorks(area) {
                 ${w.genre ? `<span class="text-xs text-ink-400 bg-ink-50 px-2 py-1 rounded">${w.genre}</span>` : ''}
                 <p class="text-sm text-ink-500 mt-3 line-clamp-2">${escHtml(w.description || 'Без описания')}</p>
                 <div class="flex items-center gap-4 mt-4 pt-4 border-t border-ink-100 text-xs text-ink-400">
-                  <span>📑 ${chCount} глав</span>
-                  <span>👥 ${charIds.size} персонажей</span>
-                  <span>📝 ${countWords(w.description || '').toLocaleString()} слов</span>
+                  <span> 📑  ${chCount} глав</span>
+                  <span> 👥  ${charIds.size} персонажей</span>
+                  <span> 📝  ${countWords(w.description || '').toLocaleString()} слов</span>
                 </div>
               </div>
             `;
@@ -411,12 +388,10 @@ function renderWorks(area) {
     </div>
   `;
 }
-
 function openWorkModal(id) {
   const work = id ? data.works.find(w => w.id === id) : null;
   editingId = id;
   const chCount = work ? (work.chapters || []).length : 0;
-
   document.getElementById('modalContent').innerHTML = `
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
@@ -459,30 +434,25 @@ function openWorkModal(id) {
   `;
   openModal();
 }
-
 function saveWork() {
   const title = document.getElementById('workTitle').value.trim();
   if (!title) { showToast('Введите название'); return; }
-
   const workData = {
     title,
     genre: document.getElementById('workGenre').value,
     status: document.getElementById('workStatus').value,
     description: document.getElementById('workDesc').value.trim()
   };
-
   if (editingId) {
     const work = data.works.find(w => w.id === editingId);
     Object.assign(work, workData);
   } else {
     data.works.push({ id: genId(), ...workData, chapters: [], createdAt: new Date().toISOString() });
   }
-
   closeModal();
   renderSection();
   showToast(editingId ? 'Произведение обновлено' : 'Произведение создано');
 }
-
 function deleteWork(id) {
   if (!confirm('Удалить произведение и все его главы?')) return;
   data.works = data.works.filter(w => w.id !== id);
@@ -490,7 +460,6 @@ function deleteWork(id) {
   renderSection();
   showToast('Произведение удалено');
 }
-
 // ============ CHARACTERS ============
 function renderCharacters(area) {
   area.innerHTML = `
@@ -523,8 +492,8 @@ function renderCharacters(area) {
                 ${c.role ? `<span class="text-xs text-sage-600 bg-sage-50 px-2 py-0.5 rounded mt-1 inline-block">${escHtml(c.role)}</span>` : ''}
                 <p class="text-sm text-ink-500 mt-2 line-clamp-2">${escHtml(c.description || 'Без описания')}</p>
                 <div class="flex items-center gap-3 mt-3 text-xs text-ink-400">
-                  <span>📝 ${countWords(c.description || '').toLocaleString()} слов</span>
-                  ${c.appearance ? '<span>👁 Есть описание внешности</span>' : ''}
+                  <span> 📝  ${countWords(c.description || '').toLocaleString()} слов</span>
+                  ${c.appearance ? '<span> 👁  Есть описание внешности</span>' : ''}
                 </div>
               </div>
             </div>
@@ -534,11 +503,9 @@ function renderCharacters(area) {
     </div>
   `;
 }
-
 function openCharModal(id) {
   const ch = id ? data.characters.find(c => c.id === id) : null;
   editingId = id;
-
   document.getElementById('modalContent').innerHTML = `
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
@@ -592,7 +559,6 @@ function openCharModal(id) {
     </div>
   `;
   openModal();
-
   // Word count update
   const descTextarea = document.getElementById('charDesc');
   if (descTextarea) {
@@ -601,11 +567,9 @@ function openCharModal(id) {
     });
   }
 }
-
 function saveChar() {
   const name = document.getElementById('charName').value.trim();
   if (!name) { showToast('Введите имя'); return; }
-
   const imgEl = document.querySelector('#charImageArea img');
   const chData = {
     name,
@@ -616,19 +580,16 @@ function saveChar() {
     notes: document.getElementById('charNotes').value.trim(),
     image: imgEl ? imgEl.src : ''
   };
-
   if (editingId) {
     const ch = data.characters.find(c => c.id === editingId);
     Object.assign(ch, chData);
   } else {
     data.characters.push({ id: genId(), ...chData, createdAt: new Date().toISOString() });
   }
-
   closeModal();
   renderSection();
   showToast(editingId ? 'Персонаж обновлён' : 'Персонаж создан');
 }
-
 function deleteChar(id) {
   if (!confirm('Удалить персонажа? Связи также будут удалены.')) return;
   data.characters = data.characters.filter(c => c.id !== id);
@@ -641,7 +602,6 @@ function deleteChar(id) {
   renderSection();
   showToast('Персонаж удалён');
 }
-
 // ============ LOCATIONS ============
 function renderLocations(area) {
   area.innerHTML = `
@@ -664,7 +624,7 @@ function renderLocations(area) {
             <div class="bg-white rounded-xl border border-ink-200 overflow-hidden card-hover cursor-pointer" onclick="openLocModal('${l.id}')">
               <div class="h-40 bg-gradient-to-br from-sage-100 to-sage-200 flex items-center justify-center overflow-hidden relative">
                 ${l.image ? `<img src="${l.image}" class="w-full h-full object-cover">` : `
-                  <div class="text-4xl">🏰</div>
+                  <div class="text-4xl"> 🏰 </div>
                 `}
               </div>
               <div class="p-4">
@@ -679,11 +639,9 @@ function renderLocations(area) {
     </div>
   `;
 }
-
 function openLocModal(id) {
   const loc = id ? data.locations.find(l => l.id === id) : null;
   editingId = id;
-
   document.getElementById('modalContent').innerHTML = `
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
@@ -731,11 +689,9 @@ function openLocModal(id) {
   `;
   openModal();
 }
-
 function saveLoc() {
   const name = document.getElementById('locName').value.trim();
   if (!name) { showToast('Введите название'); return; }
-
   const imgEl = document.querySelector('#locImageArea img');
   const locData = {
     name,
@@ -744,19 +700,16 @@ function saveLoc() {
     notes: document.getElementById('locNotes').value.trim(),
     image: imgEl ? imgEl.src : ''
   };
-
   if (editingId) {
     const loc = data.locations.find(l => l.id === editingId);
     Object.assign(loc, locData);
   } else {
     data.locations.push({ id: genId(), ...locData, createdAt: new Date().toISOString() });
   }
-
   closeModal();
   renderSection();
   showToast(editingId ? 'Место обновлено' : 'Место создано');
 }
-
 function deleteLoc(id) {
   if (!confirm('Удалить это место?')) return;
   data.locations = data.locations.filter(l => l.id !== id);
@@ -764,7 +717,6 @@ function deleteLoc(id) {
   renderSection();
   showToast('Место удалено');
 }
-
 // ============ PLANNER ============
 function renderPlanner(area) {
   if (data.works.length === 0) {
@@ -777,7 +729,6 @@ function renderPlanner(area) {
     `;
     return;
   }
-
   area.innerHTML = `
     <div class="fade-in max-w-4xl mx-auto">
       <div class="flex items-center gap-4 mb-6">
@@ -795,15 +746,12 @@ function renderPlanner(area) {
   `;
   renderPlannerChapters();
 }
-
 function renderPlannerChapters() {
   const workId = document.getElementById('plannerWork')?.value || data.works[0]?.id;
   const work = data.works.find(w => w.id === workId);
   if (!work) return;
-
   const container = document.getElementById('chaptersContainer');
   const chapters = (work.chapters || []).sort((a, b) => (a.order || 0) - (b.order || 0));
-
   if (chapters.length === 0) {
     container.innerHTML = `
       <div class="empty-state bg-white rounded-xl border border-ink-200 p-10">
@@ -813,7 +761,6 @@ function renderPlannerChapters() {
     `;
     return;
   }
-
   container.innerHTML = `
     <div class="space-y-4">
       ${chapters.map((ch, idx) => {
@@ -827,8 +774,8 @@ function renderPlannerChapters() {
                 <div>
                   <h4 class="font-serif text-lg font-semibold text-ink-800">${escHtml(ch.title)}</h4>
                   <div class="flex items-center gap-3 mt-1 text-xs text-ink-400">
-                    <span>📝 ${countWords(ch.description || '').toLocaleString()} слов</span>
-                    ${ch.pov ? `<span>👁 ${escHtml(ch.pov)}</span>` : ''}
+                    <span> 📝  ${countWords(ch.description || '').toLocaleString()} слов</span>
+                    ${ch.pov ? `<span> 👁  ${escHtml(ch.pov)}</span>` : ''}
                   </div>
                 </div>
               </div>
@@ -850,27 +797,24 @@ function renderPlannerChapters() {
             ${ch.description ? `<p class="text-sm text-ink-600 mt-3 pl-[52px] line-clamp-2">${escHtml(ch.description)}</p>` : ''}
             <div class="flex flex-wrap items-center gap-2 mt-3 pl-[52px]">
               ${chars.map(c => `<span class="badge bg-parchment-100 text-parchment-800">${escHtml(c.name)}</span>`).join('')}
-              ${loc ? `<span class="badge bg-sage-100 text-sage-700">📍 ${escHtml(loc.name)}</span>` : ''}
+              ${loc ? `<span class="badge bg-sage-100 text-sage-700"> 📍  ${escHtml(loc.name)}</span>` : ''}
               ${(ch.characterIds || []).length === 0 && !ch.locationId ? '<span class="text-xs text-ink-300">Нет персонажей и мест</span>' : ''}
             </div>
-            ${ch.notes ? `<p class="text-xs text-ink-400 mt-2 pl-[52px] italic">📌 ${escHtml(ch.notes)}</p>` : ''}
+            ${ch.notes ? `<p class="text-xs text-ink-400 mt-2 pl-[52px] italic"> 📌  ${escHtml(ch.notes)}</p>` : ''}
           </div>
         `;
       }).join('')}
     </div>
   `;
 }
-
 function openChapterModal(workId, chapterId) {
   const wId = workId || document.getElementById('plannerWork').value;
   const work = data.works.find(w => w.id === wId);
   const chapter = chapterId ? work?.chapters?.find(c => c.id === chapterId) : null;
   editingId = chapterId;
-
   const selectedChars = chapter ? (chapter.characterIds || []) : [];
   const selectedLoc = chapter ? (chapter.locationId || '') : '';
   const maxOrder = work ? Math.max(0, ...(work.chapters || []).map(c => c.order || 0)) : 0;
-
   document.getElementById('modalContent').innerHTML = `
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
@@ -928,15 +872,12 @@ function openChapterModal(workId, chapterId) {
   `;
   openModal();
 }
-
 function saveChapter(workId) {
   const title = document.getElementById('chTitle').value.trim();
   if (!title) { showToast('Введите название'); return; }
-
   const work = data.works.find(w => w.id === workId);
   if (!work) return;
   if (!work.chapters) work.chapters = [];
-
   const charIds = Array.from(document.querySelectorAll('.char-checkbox:checked')).map(cb => cb.value);
   const chData = {
     title,
@@ -947,19 +888,16 @@ function saveChapter(workId) {
     locationId: document.getElementById('chLocation').value,
     notes: document.getElementById('chNotes').value.trim()
   };
-
   if (editingId) {
     const ch = work.chapters.find(c => c.id === editingId);
     Object.assign(ch, chData);
   } else {
     work.chapters.push({ id: genId(), ...chData });
   }
-
   closeModal();
   renderPlannerChapters();
   showToast(editingId ? 'Глава обновлена' : 'Глава создана');
 }
-
 function deleteChapter(workId, chId) {
   if (!confirm('Удалить эту главу?')) return;
   const work = data.works.find(w => w.id === workId);
@@ -969,7 +907,6 @@ function deleteChapter(workId, chId) {
   renderPlannerChapters();
   showToast('Глава удалена');
 }
-
 function moveChapter(workId, chId, dir) {
   const work = data.works.find(w => w.id === workId);
   if (!work) return;
@@ -977,14 +914,12 @@ function moveChapter(workId, chId, dir) {
   const idx = chapters.findIndex(c => c.id === chId);
   const newIdx = idx + dir;
   if (newIdx < 0 || newIdx >= chapters.length) return;
-
   // Swap orders
   const temp = chapters[idx].order;
   chapters[idx].order = chapters[newIdx].order;
   chapters[newIdx].order = temp;
   renderPlannerChapters();
 }
-
 // ============ RELATIONSHIPS ============
 function renderRelationships(area) {
   if (data.characters.length < 2) {
@@ -997,7 +932,6 @@ function renderRelationships(area) {
     `;
     return;
   }
-
   area.innerHTML = `
     <div class="fade-in">
       <div class="flex justify-between items-center mb-6">
@@ -1048,10 +982,8 @@ function renderRelationships(area) {
       </div>
     </div>
   `;
-
   setTimeout(drawGraph, 100);
 }
-
 function drawGraph() {
   const canvas = document.getElementById('graphCanvas');
   if (!canvas) return;
@@ -1059,16 +991,13 @@ function drawGraph() {
   const rect = canvas.parentElement.getBoundingClientRect();
   canvas.width = rect.width - 32;
   canvas.height = 500;
-
   const chars = data.characters;
   const rels = data.relationships;
-
   // Position characters in a circle
   const cx = canvas.width / 2;
   const cy = canvas.height / 2;
   const radius = Math.min(cx, cy) - 60;
   const positions = {};
-
   chars.forEach((ch, i) => {
     const angle = (2 * Math.PI * i) / chars.length - Math.PI / 2;
     positions[ch.id] = {
@@ -1076,23 +1005,19 @@ function drawGraph() {
       y: cy + radius * Math.sin(angle)
     };
   });
-
   // Draw edges
   rels.forEach(r => {
     const p1 = positions[r.characterId1];
     const p2 = positions[r.characterId2];
     if (!p1 || !p2) return;
-
     const rType = RELATIONSHIP_TYPES.find(t => t.id === r.type);
     const color = rType?.color || '#7a6e60';
-
     ctx.beginPath();
     ctx.moveTo(p1.x, p1.y);
     ctx.lineTo(p2.x, p2.y);
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
     ctx.stroke();
-
     // Label on edge
     const mx = (p1.x + p2.x) / 2;
     const my = (p1.y + p2.y) / 2;
@@ -1100,23 +1025,20 @@ function drawGraph() {
     const tw = ctx.measureText(rType?.label || '').width;
     ctx.fillRect(mx - tw/2 - 4, my - 8, tw + 8, 16);
     ctx.fillStyle = color;
-    ctx.font = '11px Inter';
+    ctx.font = '11px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(rType?.label || r.customType || '', mx, my);
   });
-
   // Draw nodes
   chars.forEach(ch => {
     const pos = positions[ch.id];
     if (!pos) return;
-
     // Shadow
     ctx.beginPath();
     ctx.arc(pos.x, pos.y + 2, 24, 0, 2 * Math.PI);
     ctx.fillStyle = 'rgba(0,0,0,0.1)';
     ctx.fill();
-
     // Circle
     ctx.beginPath();
     ctx.arc(pos.x, pos.y, 24, 0, 2 * Math.PI);
@@ -1128,21 +1050,18 @@ function drawGraph() {
     ctx.strokeStyle = '#c49540';
     ctx.lineWidth = 2;
     ctx.stroke();
-
     // Name
     ctx.fillStyle = '#2a2420';
-    ctx.font = 'bold 13px Cormorant Garamond';
+    ctx.font = 'bold 13px Georgia, serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const name = ch.name.length > 10 ? ch.name.substring(0, 9) + '…' : ch.name;
     ctx.fillText(name, pos.x, pos.y + 38);
   });
 }
-
 function openRelModal(id) {
   const rel = id ? data.relationships.find(r => r.id === id) : null;
   editingId = id;
-
   document.getElementById('modalContent').innerHTML = `
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
@@ -1193,7 +1112,6 @@ function openRelModal(id) {
     </div>
   `;
   openModal();
-
   // Toggle custom type area
   document.querySelectorAll('input[name="relType"]').forEach(radio => {
     radio.addEventListener('change', function() {
@@ -1201,16 +1119,13 @@ function openRelModal(id) {
     });
   });
 }
-
 function saveRel() {
   const c1 = document.getElementById('relChar1').value;
   const c2 = document.getElementById('relChar2').value;
   if (!c1 || !c2) { showToast('Выберите обоих персонажей'); return; }
   if (c1 === c2) { showToast('Выберите разных персонажей'); return; }
-
   const typeRadio = document.querySelector('input[name="relType"]:checked');
   const type = typeRadio ? typeRadio.value : '';
-
   const relData = {
     characterId1: c1,
     characterId2: c2,
@@ -1218,33 +1133,29 @@ function saveRel() {
     customType: type === 'custom' ? document.getElementById('relCustomType').value.trim() : '',
     description: document.getElementById('relDesc').value.trim()
   };
-
   if (editingId) {
     const rel = data.relationships.find(r => r.id === editingId);
     Object.assign(rel, relData);
   } else {
     data.relationships.push({ id: genId(), ...relData });
   }
-
   closeModal();
   renderSection();
   showToast(editingId ? 'Связь обновлена' : 'Связь создана');
 }
-
 function deleteRel(id) {
   if (!confirm('Удалить эту связь?')) return;
   data.relationships = data.relationships.filter(r => r.id !== id);
   renderSection();
   showToast('Связь удалена');
 }
-
 // ============ TOOLS ============
 function renderTools(area) {
   area.innerHTML = `
     <div class="fade-in max-w-4xl mx-auto space-y-6">
       <!-- Word Counter -->
       <div class="bg-white rounded-xl border border-ink-200 p-6">
-        <h3 class="font-serif text-xl font-semibold mb-4">📝 Счётчик слов</h3>
+        <h3 class="font-serif text-xl font-semibold mb-4"> 📝  Счётчик слов</h3>
         <textarea id="wordCounterInput" rows="6" class="w-full px-4 py-3 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 resize-none font-mono text-sm" placeholder="Вставьте или напишите текст..." oninput="updateWordCounter()"></textarea>
         <div class="flex flex-wrap gap-4 mt-3 text-sm">
           <div class="stat-card rounded-lg px-4 py-2">
@@ -1264,10 +1175,9 @@ function renderTools(area) {
           </div>
         </div>
       </div>
-
       <!-- Name Generator -->
       <div class="bg-white rounded-xl border border-ink-200 p-6">
-        <h3 class="font-serif text-xl font-semibold mb-4">🎭 Генератор имён</h3>
+        <h3 class="font-serif text-xl font-semibold mb-4"> 🎭  Генератор имён</h3>
         <div class="flex gap-3 mb-4">
           <select id="nameGender" class="px-4 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400">
             <option value="any">Любой</option>
@@ -1285,19 +1195,17 @@ function renderTools(area) {
           <span class="text-sm text-ink-400">Нажмите кнопку для генерации</span>
         </div>
       </div>
-
       <!-- Writing Prompts -->
       <div class="bg-white rounded-xl border border-ink-200 p-6">
-        <h3 class="font-serif text-xl font-semibold mb-4">💡 Генератор подсказок</h3>
+        <h3 class="font-serif text-xl font-semibold mb-4"> 💡  Генератор подсказок</h3>
         <div id="toolPrompt" class="writing-prompt rounded-lg p-5 mb-4">
           <p class="text-ink-700 italic">${WRITING_PROMPTS[Math.floor(Math.random() * WRITING_PROMPTS.length)]}</p>
         </div>
         <button onclick="generateToolPrompt()" class="btn-primary">Другая подсказка</button>
       </div>
-
       <!-- Character Randomizer -->
       <div class="bg-white rounded-xl border border-ink-200 p-6">
-        <h3 class="font-serif text-xl font-semibold mb-4">🎲 Случайная комбинация</h3>
+        <h3 class="font-serif text-xl font-semibold mb-4"> 🎲  Случайная комбинация</h3>
         <p class="text-sm text-ink-500 mb-4">Генерирует случайную комбинацию персонажа, места и ситуации для вдохновения</p>
         <div id="randomCombo" class="space-y-3 mb-4"></div>
         <button onclick="generateRandomCombo()" class="btn-primary">Сгенерировать</button>
@@ -1305,7 +1213,6 @@ function renderTools(area) {
     </div>
   `;
 }
-
 function updateWordCounter() {
   const text = document.getElementById('wordCounterInput').value;
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
@@ -1313,18 +1220,15 @@ function updateWordCounter() {
   const charsNS = text.replace(/\s/g, '').length;
   const sentences = text.split(/[.!?]+/).filter(s => s.trim()).length;
   const pages = (chars / 40000).toFixed(2);
-
   document.getElementById('wcWords').textContent = words.toLocaleString();
   document.getElementById('wcChars').textContent = chars.toLocaleString();
   document.getElementById('wcCharsNS').textContent = charsNS.toLocaleString();
   document.getElementById('wcSentences').textContent = sentences;
   document.getElementById('wcPages').textContent = pages;
 }
-
 function generateNames() {
   const gender = document.getElementById('nameGender').value;
   const style = document.getElementById('nameStyle').value;
-
   const names = {
     russian: {
       male: ['Александр', 'Дмитрий', 'Максим', 'Артём', 'Иван', 'Михаил', 'Даниил', 'Никита', 'Егор', 'Андрей', 'Кирилл', 'Фёдор', 'Владимир', 'Борис', 'Степан'],
@@ -1339,36 +1243,30 @@ function generateNames() {
       female: ['Элара', 'Изольда', 'Серафина', 'Лириэль', 'Аврора', 'Мирабель', 'Талисса', 'Нимфея', 'Аэлин', 'Кассандра', 'Эвелина', 'Веспер', 'Люциана', 'Селестия', 'Астрид']
     }
   };
-
   let pool = [];
   if (gender === 'any') {
     pool = [...names[style].male, ...names[style].female];
   } else {
     pool = names[style][gender];
   }
-
   const results = [];
   while (results.length < 5) {
     const name = pool[Math.floor(Math.random() * pool.length)];
     if (!results.includes(name)) results.push(name);
   }
-
   document.getElementById('nameResults').innerHTML = results.map(n => `
     <button onclick="navigator.clipboard.writeText('${n}'); showToast('Скопировано')" class="px-4 py-2 bg-sage-50 text-sage-700 rounded-lg text-sm font-medium hover:bg-sage-100 transition-colors cursor-pointer">${n}</button>
   `).join('');
 }
-
 function generateToolPrompt() {
   const prompt = WRITING_PROMPTS[Math.floor(Math.random() * WRITING_PROMPTS.length)];
   document.getElementById('toolPrompt').innerHTML = `<p class="text-ink-700 italic fade-in">${prompt}</p>`;
 }
-
 function generateRandomCombo() {
   if (data.characters.length === 0 || data.locations.length === 0) {
     document.getElementById('randomCombo').innerHTML = '<p class="text-sm text-ink-400">Создайте персонажей и места для генерации</p>';
     return;
   }
-
   const char = data.characters[Math.floor(Math.random() * data.characters.length)];
   const loc = data.locations[Math.floor(Math.random() * data.locations.length)];
   const situations = [
@@ -1386,48 +1284,41 @@ function generateRandomCombo() {
     'спасает незнакомца'
   ];
   const situation = situations[Math.floor(Math.random() * situations.length)];
-
   document.getElementById('randomCombo').innerHTML = `
     <div class="flex items-center gap-3 p-3 bg-parchment-50 rounded-lg fade-in">
-      <span class="text-2xl">👤</span>
+      <span class="text-2xl"> 👤 </span>
       <span class="font-medium">${escHtml(char.name)}</span>
     </div>
     <div class="text-center text-ink-400 fade-in">${situation}</div>
     <div class="flex items-center gap-3 p-3 bg-sage-50 rounded-lg fade-in">
-      <span class="text-2xl">📍</span>
+      <span class="text-2xl"> 📍 </span>
       <span class="font-medium">${escHtml(loc.name)}</span>
     </div>
   `;
 }
-
 // ============ SEARCH ============
 function handleGlobalSearch(query) {
   if (!query.trim()) {
     renderSection();
     return;
   }
-
   const q = query.toLowerCase();
   const results = [];
-
   data.works.forEach(w => {
     if (w.title.toLowerCase().includes(q) || (w.description || '').toLowerCase().includes(q)) {
       results.push({ type: 'Произведение', name: w.title, section: 'works', id: w.id });
     }
   });
-
   data.characters.forEach(c => {
     if (c.name.toLowerCase().includes(q) || (c.description || '').toLowerCase().includes(q) || (c.appearance || '').toLowerCase().includes(q)) {
       results.push({ type: 'Персонаж', name: c.name, section: 'characters', id: c.id });
     }
   });
-
   data.locations.forEach(l => {
     if (l.name.toLowerCase().includes(q) || (l.description || '').toLowerCase().includes(q)) {
       results.push({ type: 'Место', name: l.name, section: 'locations', id: l.id });
     }
   });
-
   const area = document.getElementById('contentArea');
   if (results.length === 0) {
     area.innerHTML = `<div class="fade-in empty-state"><p class="text-ink-400">Ничего не найдено по запросу "${escHtml(query)}"</p></div>`;
@@ -1450,7 +1341,6 @@ function handleGlobalSearch(query) {
     `;
   }
 }
-
 function goToResult(section, id) {
   document.getElementById('globalSearch').value = '';
   showSection(section);
@@ -1458,14 +1348,12 @@ function goToResult(section, id) {
   else if (section === 'characters') openCharModal(id);
   else if (section === 'locations') openLocModal(id);
 }
-
 // ============ SAVE/LOAD ============
 function saveProject() {
   localStorage.setItem('writerAssistant', JSON.stringify(data));
   document.getElementById('lastSaved').textContent = 'Сохранено: ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
   showToast('Проект сохранён');
 }
-
 function loadProject() {
   const saved = localStorage.getItem('writerAssistant');
   if (saved) {
@@ -1480,7 +1368,6 @@ function loadProject() {
     showToast('Нет сохранённых данных');
   }
 }
-
 function exportProject() {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -1491,7 +1378,6 @@ function exportProject() {
   URL.revokeObjectURL(url);
   showToast('Проект экспортирован');
 }
-
 function importProject(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -1508,44 +1394,36 @@ function importProject(event) {
   reader.readAsText(file);
   event.target.value = '';
 }
-
 // ============ UTILS ============
 function genId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
 }
-
 function escHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
 }
-
 function escAttr(str) {
   return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
-
 function showToast(msg) {
   const toast = document.getElementById('toast');
   document.getElementById('toastText').textContent = msg;
   toast.classList.remove('hidden');
   setTimeout(() => toast.classList.add('hidden'), 2500);
 }
-
 function openModal() {
   document.getElementById('modal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
-
 function closeModal() {
   document.getElementById('modal').classList.add('hidden');
   document.body.style.overflow = '';
   editingId = null;
 }
-
 function handleImageUpload(input, areaId) {
   const file = input.files[0];
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = function(e) {
     const area = document.getElementById(areaId);
@@ -1553,22 +1431,18 @@ function handleImageUpload(input, areaId) {
   };
   reader.readAsDataURL(file);
 }
-
 // ============ INIT ============
 // Auto-load from localStorage
 const saved = localStorage.getItem('writerAssistant');
 if (saved) {
   try { data = JSON.parse(saved); } catch (e) {}
 }
-
 showSection('dashboard');
-
 // Auto-save every 30 seconds
 setInterval(() => {
   localStorage.setItem('writerAssistant', JSON.stringify(data));
-  document.getElementById('lastSaved').textContent = 'Автосохранение: ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('lastSaved').textContent = ' Автосохранение : ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 }, 30000);
-
 // Handle keyboard shortcuts
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeModal();
